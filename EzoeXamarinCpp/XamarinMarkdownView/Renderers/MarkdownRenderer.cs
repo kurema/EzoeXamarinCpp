@@ -20,6 +20,7 @@ namespace kurema.XamarinMarkdownView.Renderers
     {
         private List<View> Layouts = new List<View>();
         private Label? CurrentLabel = null;
+        private Layout<View>? CurrentLayout = null;
 
         public MarkdownRenderer()
         {
@@ -75,7 +76,17 @@ namespace kurema.XamarinMarkdownView.Renderers
         public void CloseLabel()
         {
             if (CurrentLabel == null) return;
-            Layouts.Add(CurrentLabel);
+            Layout<View> view;
+            if (Layouts.LastOrDefault() is Layout<View> layout)
+            {
+                view = layout;
+            }
+            else
+            {
+                view = new StackLayout();
+                Layouts.Add(view);
+            }
+            view.Children.Add(view);
             CurrentLabel = null;
         }
 
