@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-
+using kurema.XamarinMarkdownView.Themes;
 using Markdig.Helpers;
 using Markdig.Renderers;
 using Markdig.Syntax;
@@ -18,12 +18,18 @@ namespace kurema.XamarinMarkdownView.Renderers
 #nullable enable
     public class MarkdownRenderer : RendererBase
     {
-        private List<View> Layouts = new List<View>();
-        private Label? CurrentLabel = null;
-        private Layout<View>? CurrentLayout = null;
+        private Label CurrentLabel = new Label();
+        private Layout<View> TopLayout = new StackLayout();
+        private Layout<View> CurrentLayout;
+
+        private Theme theme = Theme.GetDefaultTheme();
+
+        public Theme Theme { get => theme; set => theme = value; }
 
         public MarkdownRenderer()
         {
+            CurrentLayout = TopLayout;
+            Clear();
         }
 
         public override object Render(MarkdownObject markdownObject)
@@ -34,22 +40,22 @@ namespace kurema.XamarinMarkdownView.Renderers
             return GetView();
         }
 
-        public void AppendInline(string text, string styleId)
+        public void AppendInline(string text, Theme.StyleId styleId)
         {
             var span = new Span();
             span.Text = text;
-            span.StyleId = styleId;
+            span.Style = Theme.GetStyleFromStyleId(styleId);
             AppendInline(span);
         }
 
-        public void AppendHyperLink(string text,string styleId,string Url)
+        public void AppendHyperLink(string text, Theme.StyleId styleKey,System.Uri url)
         {
             var span = new Span();
             span.Text = text;
-            span.StyleId = styleId;
+            span.Style = Theme.GetStyleFromStyleId(styleKey);
             {
                 var taper = new TapGestureRecognizer();
-                taper.Tapped += (a, e) => OpenBrowser(Url);
+                taper.Tapped += (a, e) => OpenBrowser(url.OriginalString);
                 span.GestureRecognizers.Add(taper);
             }
             AppendInline(span);
@@ -65,39 +71,38 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public void AppendBlock(View view)
         {
-            Layouts.Add(view);
+            CurrentLayout.Children.Add(view);
+        }
+
+        public void AppendStack(Theme.StyleId styleKey)
+        {
+            AppendBlock(new StackLayout() { Style = Theme.GetStyleFromStyleId(styleKey) });
         }
 
         public void Clear()
         {
-            Layouts = new List<View>();
+            TopLayout = new StackLayout();
+            CurrentLayout = TopLayout;
+            CurrentLabel = new Label();
         }
 
         public void CloseLabel()
         {
             if (CurrentLabel == null) return;
-            Layout<View> view;
-            if (Layouts.LastOrDefault() is Layout<View> layout)
-            {
-                view = layout;
-            }
-            else
-            {
-                view = new StackLayout();
-                Layouts.Add(view);
-            }
-            view.Children.Add(view);
-            CurrentLabel = null;
+            CurrentLayout.Children.Add(CurrentLabel);
+            CurrentLabel = new Label();
+        }
+
+        public void CloseLayout()
+        {
+            CurrentLayout = TopLayout;
         }
 
         public View GetView()
         {
             CloseLabel();
 
-            var layout = new StackLayout();
-            foreach (var item in Layouts)
-                layout.Children.Add(item);
-            return layout;
+            return TopLayout;
         }
     }
 
