@@ -9,12 +9,12 @@ namespace kurema.XamarinMarkdownView.Themes
 #nullable enable
     public class Theme
     {
-        public Theme(Dictionary<StyleId, Xamarin.Forms.Style> styles)
+        public Theme(Dictionary<StyleId, StyleSimple> styles)
         {
             Styles = styles ?? throw new ArgumentNullException(nameof(styles));
         }
 
-        public Dictionary<StyleId, Xamarin.Forms.Style> Styles { get; } = new Dictionary<StyleId, global::Xamarin.Forms.Style>();
+        public Dictionary<StyleId, StyleSimple> Styles { get; } = new Dictionary<StyleId, StyleSimple>();
 
         public static Theme GetDefaultTheme()
         {
@@ -31,10 +31,10 @@ namespace kurema.XamarinMarkdownView.Themes
             }
 
             var theme = new Theme(
-                new Dictionary<StyleId, Xamarin.Forms.Style>() {
+                new Dictionary<StyleId, StyleSimple>() {
                     {
                         StyleId.Code,
-                        new StyleSimple(fontSize:Device.GetNamedSize (NamedSize.Body, typeof(Span)),fontFamily:codeFont).ToStyleSpan()
+                        new StyleSimple(fontSize:Device.GetNamedSize (NamedSize.Body, typeof(Span)),fontFamily:codeFont)
                     }
                 }
                 );
@@ -42,7 +42,7 @@ namespace kurema.XamarinMarkdownView.Themes
             return theme;
         }
 
-        public Style GetStyleFromStyleId(StyleId key)
+        public StyleSimple GetStyleFromStyleId(StyleId key)
         {
             return Styles[key];
         }

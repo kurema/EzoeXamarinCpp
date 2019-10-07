@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,13 +10,29 @@ namespace kurema.XamarinMarkdownView.Themes
 #nullable enable
     public class StyleSimple
     {
-        public StyleSimple(FontAttributes? fontAttributes=null, double? fontSize = null, Color? foregroundColor = null, Color? backgroundColor = null, string? fontFamily = null)
+        public StyleSimple(FontAttributes? fontAttributes=null, double? fontSize = null, Color? foregroundColor = null, Color? backgroundColor = null, string? fontFamily = null,
+            Color? borderColor=null, float? borderSize=null)
         {
             FontAttributes = fontAttributes;
             FontSize = fontSize;
             ForegroundColor = foregroundColor;
             BackgroundColor = backgroundColor;
             FontFamily = fontFamily;
+            BorderColor = borderColor;
+            BorderSize = borderSize;
+        }
+
+        public StyleSimple(StyleSimple styleSimple)
+        {
+            if (styleSimple == null) return;
+
+            FontAttributes = styleSimple.FontAttributes;
+            FontSize = styleSimple.FontSize;
+            ForegroundColor = styleSimple.ForegroundColor;
+            BackgroundColor = styleSimple.BackgroundColor;
+            FontFamily = styleSimple.FontFamily;
+            BorderColor = styleSimple.BorderColor;
+            BorderSize = styleSimple.BorderSize;
         }
 
         public FontAttributes? FontAttributes { get; set; } = Xamarin.Forms.FontAttributes.None;
@@ -25,6 +42,30 @@ namespace kurema.XamarinMarkdownView.Themes
         public string? FontFamily { get; set; }
         public Color? BorderColor { get; set; }
         public float? BorderSize { get; set; }
+
+        public static StyleSimple Combine(StyleSimple a, StyleSimple b)
+        {
+            return new StyleSimple()
+            {
+                FontAttributes = b?.FontAttributes ?? a?.FontAttributes,
+                FontSize = b?.FontSize ?? a?.FontSize,
+                ForegroundColor = b?.ForegroundColor ?? a?.ForegroundColor,
+                //BackgroundColor = b?.BackgroundColor ?? a?.BackgroundColor,
+                FontFamily = b?.FontFamily ?? a?.FontFamily,
+                //BorderColor = b?.BorderColor ?? a?.BorderColor,
+                //BorderSize = b?.BorderSize ?? a?.BorderSize
+            };
+        }
+
+        public static StyleSimple Combine(params StyleSimple[] styles)
+        {
+            var result = new StyleSimple();
+            foreach(var item in styles)
+            {
+                result = Combine(result, item);
+            }
+            return result;
+        }
 
         public Style ToStyleSpan()
         {
@@ -63,6 +104,18 @@ namespace kurema.XamarinMarkdownView.Themes
             Theme.AddSetter(result.Setters, Frame.BorderColorProperty, style.BackgroundColor);
 
             return result;
+        }
+
+        public Style ToStyleBox()
+        {
+            var style = this;
+            var result = new Style(typeof(BoxView));
+
+            Theme.AddSetter(result.Setters, BoxView.BackgroundColorProperty, style.BackgroundColor);
+            Theme.AddSetter(result.Setters, BoxView.ColorProperty, style.ForegroundColor);
+
+            return result;
+
         }
     }
 #nullable restore

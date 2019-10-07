@@ -20,15 +20,14 @@ namespace kurema.XamarinMarkdownView.Renderers
     {
         private Label CurrentLabel = new Label();
         private Layout<View> TopLayout = new StackLayout();
-        private Layout<View> CurrentLayout;
+        private Stack<Tuple<Layout<View>, StyleSimple>> LayoutStack = new Stack<Tuple<Layout<View>, StyleSimple>>();
 
-        private Theme theme = Theme.GetDefaultTheme();
+        private Layout<View> CurrentLayout => LayoutStack?.LastOrDefault()?.Item1 ?? TopLayout;
 
-        public Theme Theme { get => theme; set => theme = value; }
+        public Theme Theme { get; set; } = Theme.GetDefaultTheme();
 
         public MarkdownRenderer()
         {
-            CurrentLayout = TopLayout;
             Clear();
         }
 
@@ -44,7 +43,7 @@ namespace kurema.XamarinMarkdownView.Renderers
         {
             var span = new Span();
             span.Text = text;
-            span.Style = Theme.GetStyleFromStyleId(styleId);
+            span.Style = Theme.GetStyleFromStyleId(styleId).ToStyleSpan();
             AppendInline(span);
         }
 
@@ -52,16 +51,19 @@ namespace kurema.XamarinMarkdownView.Renderers
         {
             var span = new Span();
             span.Text = text;
-            span.Style = Theme.GetStyleFromStyleId(styleKey);
+            span.Style = Theme.GetStyleFromStyleId(styleKey).ToStyleSpan();
             {
                 var taper = new TapGestureRecognizer();
-                taper.Tapped += (a, e) => OpenBrowser(url.OriginalString);
+                taper.Tapped += (a, e) => OpenUri(url);
                 span.GestureRecognizers.Add(taper);
             }
             AppendInline(span);
         }
 
-        private static async void OpenBrowser(string Url) => await Xamarin.Essentials.Browser.OpenAsync(Url, Xamarin.Essentials.BrowserLaunchMode.SystemPreferred);
+        private static async void OpenUri(Uri Url)
+        {
+            await Xamarin.Essentials.Browser.OpenAsync(Url, Xamarin.Essentials.BrowserLaunchMode.SystemPreferred);
+        }
 
         public void AppendInline(Span span)
         {
@@ -74,15 +76,40 @@ namespace kurema.XamarinMarkdownView.Renderers
             CurrentLayout.Children.Add(view);
         }
 
-        public void AppendStack(Theme.StyleId styleKey)
+        public void AppendFrame(Theme.StyleId styleKey)
         {
-            AppendBlock(new StackLayout() { Style = Theme.GetStyleFromStyleId(styleKey) });
+            var stack = new StackLayout();
+            var theme = Theme.GetStyleFromStyleId(styleKey);
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            AppendBlock(
+                new Frame()
+                {
+                    Style = theme.ToStyleFrame(),
+                    Content = stack
+                });
+        }
+
+        public void ApendQuote(Theme.StyleId styleBox,Theme.StyleId styleContent)
+        {
+            StackLayout stack = new StackLayout();
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleContent)));
+
+            AppendBlock(
+                new StackLayout
+                {
+                    Orientation=StackOrientation.Horizontal,
+                    Children = {
+                        new BoxView(){Style=Theme.GetStyleFromStyleId(styleBox).ToStyleBox()},
+                        stack
+                    }
+                }
+                );
         }
 
         public void Clear()
         {
             TopLayout = new StackLayout();
-            CurrentLayout = TopLayout;
+            LayoutStack.Clear();
             CurrentLabel = new Label();
         }
 
@@ -95,7 +122,7 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public void CloseLayout()
         {
-            CurrentLayout = TopLayout;
+            LayoutStack.Pop();
         }
 
         public View GetView()
