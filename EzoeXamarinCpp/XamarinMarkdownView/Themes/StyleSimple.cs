@@ -47,7 +47,7 @@ namespace kurema.XamarinMarkdownView.Themes
         {
             return new StyleSimple()
             {
-                FontAttributes = b?.FontAttributes ?? a?.FontAttributes,
+                FontAttributes = (b?.FontAttributes ?? Xamarin.Forms.FontAttributes.None) | (a?.FontAttributes ?? Xamarin.Forms.FontAttributes.None),
                 FontSize = b?.FontSize ?? a?.FontSize,
                 ForegroundColor = b?.ForegroundColor ?? a?.ForegroundColor,
                 //BackgroundColor = b?.BackgroundColor ?? a?.BackgroundColor,
@@ -115,7 +115,6 @@ namespace kurema.XamarinMarkdownView.Themes
             Theme.AddSetter(result.Setters, BoxView.ColorProperty, style.ForegroundColor);
 
             return result;
-
         }
     }
 #nullable restore

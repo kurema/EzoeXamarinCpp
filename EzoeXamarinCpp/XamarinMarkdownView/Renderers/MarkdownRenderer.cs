@@ -21,8 +21,8 @@ namespace kurema.XamarinMarkdownView.Renderers
         private Label CurrentLabel = new Label();
         private Layout<View> TopLayout = new StackLayout();
         private Stack<Tuple<Layout<View>, StyleSimple>> LayoutStack = new Stack<Tuple<Layout<View>, StyleSimple>>();
-
-        private Layout<View> CurrentLayout => LayoutStack?.LastOrDefault()?.Item1 ?? TopLayout;
+        public Layout<View>? TemporaryTargetLayout { get; set; } = null;
+        private Layout<View> CurrentLayout => TemporaryTargetLayout ?? LayoutStack?.LastOrDefault()?.Item1 ?? TopLayout;
 
         public Theme Theme { get; set; } = Theme.GetDefaultTheme();
 
@@ -89,6 +89,14 @@ namespace kurema.XamarinMarkdownView.Renderers
                 });
         }
 
+        public void AppendStack(Theme.StyleId styleKey)
+        {
+            var stack = new StackLayout();
+            var theme = Theme.GetStyleFromStyleId(styleKey);
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            AppendBlock(stack);
+        }
+
         public void ApendQuote(Theme.StyleId styleBox,Theme.StyleId styleContent)
         {
             StackLayout stack = new StackLayout();
@@ -120,6 +128,12 @@ namespace kurema.XamarinMarkdownView.Renderers
             CurrentLabel = new Label();
         }
 
+        public void AppendLine(string text, Theme.StyleId styleId)
+        {
+            AppendInline(text, styleId);
+            CloseLabel();
+        }
+
         public void CloseLayout()
         {
             LayoutStack.Pop();
@@ -131,9 +145,18 @@ namespace kurema.XamarinMarkdownView.Renderers
 
             return TopLayout;
         }
+
+        public void AppendLeafs(LeafBlock leaf, Theme.StyleId styleId)
+        {
+            if (leaf == null) return;
+            foreach(var item in leaf.Lines.Lines)
+            {
+                AppendLine(item.Slice.ToString(),styleId);
+            }
+        }
     }
 
-    public abstract class ObjectRenderer<TObject> : MarkdownObjectRenderer<MarkdownRenderer, TObject> where TObject : MarkdownObject
+    public abstract class XamarinFormsObjectRenderer<TObject> : MarkdownObjectRenderer<MarkdownRenderer, TObject> where TObject : MarkdownObject
     {
     }
 #nullable restore

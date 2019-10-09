@@ -61,13 +61,19 @@ namespace kurema.XamarinMarkdownView.Themes
             Image,
             Inserted,
             Marked,
+            Paragraph,
             QuoteBlock,
             StrikeThrough,
             Subscript,
             Superscript,
             TaskList,
             ThematicBreak,
-            Hyperlink
+            Hyperlink,
+            ListItem,
+            ListBullet,
+            ListNumber,
+            HtmlBlock,
+            None
         }
 
         public static void AddSetter(IList<Setter> setters, BindableProperty property, object? value)
