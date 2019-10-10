@@ -124,7 +124,7 @@ namespace kurema.XamarinMarkdownView.Renderers
             if (obj == null) return;
             int level = Math.Max(0, Math.Min(5, obj.Level - 1));
 
-            renderer?.AppendLeafs(obj, StyleIds[level]);
+            renderer?.AppendLeafs(obj, StyleIds[level], true);
         }
     }
 

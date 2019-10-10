@@ -30,6 +30,8 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public Action<Uri> UriOpener { get; set; } = (uri) => OpenUri(uri);
 
+        public List<TocEntry> Toc { get; } = new List<TocEntry>();
+
         /// <summary>
         /// Make sure to reset when done.
         /// </summary>
@@ -144,15 +146,15 @@ namespace kurema.XamarinMarkdownView.Renderers
             AppendBlock(stack);
         }
 
-        public void ApendQuote(Theme.StyleId styleBox,Theme.StyleId styleContent)
+        public void ApendQuote(Theme.StyleId styleBox, Theme.StyleId styleId)
         {
             StackLayout stack = new StackLayout();
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleContent)));
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleId)));
 
             AppendBlock(
                 new StackLayout
                 {
-                    Orientation=StackOrientation.Horizontal,
+                    Orientation = StackOrientation.Horizontal,
                     Children = {
                         new BoxView(){Style=Theme.GetStyleFromStyleId(styleBox).ToStyleBox()},
                         stack
@@ -161,10 +163,16 @@ namespace kurema.XamarinMarkdownView.Renderers
                 );
         }
 
+        public void AddTocEntry(Theme.StyleId styleId, string title,View view)
+        {
+            Toc.Add(new TocEntry() { StyleId = styleId, Title = title, View = view });
+        }
+
         public void Clear()
         {
             TopLayout = new StackLayout();
             LayoutStack.Clear();
+            Toc.Clear();
             CurrentLabel = new Label();
         }
 
@@ -177,6 +185,7 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public void AppendLine(string text, Theme.StyleId styleId)
         {
+            CloseLabel();
             AppendInline(text, styleId);
             CloseLabel();
         }
@@ -193,13 +202,14 @@ namespace kurema.XamarinMarkdownView.Renderers
             return TopLayout;
         }
 
-        public void AppendLeafs(LeafBlock leaf, Theme.StyleId styleId)
+        public void AppendLeafs(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false)
         {
             if (leaf == null) return;
-            foreach(var item in leaf.Lines.Lines)
-            {
-                AppendLine(item.Slice.ToString(),styleId);
-            }
+            CloseLabel();
+            var title = leaf.Lines.Lines.Aggregate("", (a, b) => a + "\n" + b);
+            AppendInline(title, styleId);
+            if (registerToc) AddTocEntry(styleId, title, CurrentLabel);
+            CloseLabel();
         }
 
         public static Uri? GetAbsoluteUri(Uri? basePath, string path)
@@ -216,6 +226,40 @@ namespace kurema.XamarinMarkdownView.Renderers
             {
                 return null;
             }
+        }
+    }
+
+    public struct TocEntry : IEquatable<TocEntry>
+    {
+        public View View { get; set; }
+        public string Title { get; set; }
+        public Theme.StyleId StyleId { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is TocEntry entry && Equals(entry);
+        }
+
+        public bool Equals(TocEntry other)
+        {
+            return EqualityComparer<View>.Default.Equals(View, other.View) &&
+                   Title == other.Title &&
+                   StyleId == other.StyleId;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(View, Title, StyleId);
+        }
+
+        public static bool operator ==(TocEntry left, TocEntry right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(TocEntry left, TocEntry right)
+        {
+            return !(left == right);
         }
     }
 
