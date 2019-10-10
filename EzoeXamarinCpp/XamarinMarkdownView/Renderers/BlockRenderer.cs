@@ -7,6 +7,7 @@ using Xamarin.Forms;
 
 namespace kurema.XamarinMarkdownView.Renderers
 {
+#nullable enable
     public class ParagraphRenderer : XamarinFormsObjectRenderer<ParagraphBlock>
     {
         protected override void Write(MarkdownRenderer renderer, ParagraphBlock obj)
@@ -93,5 +94,52 @@ namespace kurema.XamarinMarkdownView.Renderers
         }
     }
 
+    public class ThematicBreakRenderer : XamarinFormsObjectRenderer<ThematicBreakBlock>
+    {
+        protected override void Write(MarkdownRenderer renderer, ThematicBreakBlock obj)
+        {
+            renderer?.AppendBlock(new BoxView()
+            {
+                Style=renderer.Theme.GetStyleFromStyleId(Themes.Theme.StyleId.ThematicBreak).ToStyleBox(),
+                WidthRequest=0,
+                HorizontalOptions=LayoutOptions.FillAndExpand
+            });
+        }
+    }
 
+    public class HeadingRenderer : XamarinFormsObjectRenderer<HeadingBlock>
+    {
+        private static readonly Themes.Theme.StyleId[] StyleIds =
+        {
+            Themes.Theme.StyleId.Heading1,
+            Themes.Theme.StyleId.Heading2,
+            Themes.Theme.StyleId.Heading3,
+            Themes.Theme.StyleId.Heading4,
+            Themes.Theme.StyleId.Heading5,
+            Themes.Theme.StyleId.Heading6
+        };
+
+        protected override void Write(MarkdownRenderer renderer, HeadingBlock obj)
+        {
+            if (obj == null) return;
+            int level = Math.Max(0, Math.Min(5, obj.Level - 1));
+
+            renderer?.AppendLeafs(obj, StyleIds[level]);
+        }
+    }
+
+    public class CodeBlockRenderer : XamarinFormsObjectRenderer<CodeBlock>
+    {
+        protected override void Write(MarkdownRenderer renderer, CodeBlock obj)
+        {
+            var fencedCodeBlock = obj as FencedCodeBlock;
+
+            if (fencedCodeBlock?.Info != null)
+            {
+                renderer?.AppendLeafs(obj, Themes.Theme.StyleId.CodeBlock);
+            }
+        }
+    }
+
+#nullable restore
 }

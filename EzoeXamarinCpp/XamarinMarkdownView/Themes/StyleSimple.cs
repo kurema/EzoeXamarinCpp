@@ -10,6 +10,8 @@ namespace kurema.XamarinMarkdownView.Themes
 #nullable enable
     public class StyleSimple
     {
+        public static StyleSimple None => new StyleSimple();
+
         public StyleSimple(FontAttributes? fontAttributes=null, double? fontSize = null, Color? foregroundColor = null, Color? backgroundColor = null, string? fontFamily = null,
             Color? borderColor=null, float? borderSize=null)
         {
@@ -113,6 +115,8 @@ namespace kurema.XamarinMarkdownView.Themes
 
             Theme.AddSetter(result.Setters, BoxView.BackgroundColorProperty, style.BackgroundColor);
             Theme.AddSetter(result.Setters, BoxView.ColorProperty, style.ForegroundColor);
+            Theme.AddSetter(result.Setters, BoxView.HeightProperty, style.BorderSize);
+            Theme.AddSetter(result.Setters, BoxView.WidthProperty, style.BorderSize);
 
             return result;
         }

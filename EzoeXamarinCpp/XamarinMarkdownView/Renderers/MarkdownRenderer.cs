@@ -24,11 +24,41 @@ namespace kurema.XamarinMarkdownView.Renderers
         public Layout<View>? TemporaryTargetLayout { get; set; } = null;
         private Layout<View> CurrentLayout => TemporaryTargetLayout ?? LayoutStack?.LastOrDefault()?.Item1 ?? TopLayout;
 
+        public Uri? BasePath { get; set; }
+
         public Theme Theme { get; set; } = Theme.GetDefaultTheme();
+
+        public Action<Uri> UriOpener { get; set; } = (uri) => OpenUri(uri);
+
+        /// <summary>
+        /// Make sure to reset when done.
+        /// </summary>
+        public Uri? CurrentHyperlink { get; set; }
+        public Theme.StyleId HyperlinkStyleId { get; set; } = Theme.StyleId.None;
 
         public MarkdownRenderer()
         {
             Clear();
+
+            // Default block renderers
+            ObjectRenderers.Add(new CodeBlockRenderer());
+            ObjectRenderers.Add(new ListRenderer());
+            ObjectRenderers.Add(new HeadingRenderer());
+            ObjectRenderers.Add(new HtmlBlockRenderer());
+            ObjectRenderers.Add(new ParagraphRenderer());
+            ObjectRenderers.Add(new QuoteBlockRenderer());
+            ObjectRenderers.Add(new ThematicBreakRenderer());
+
+            // Default inline renderers
+            ObjectRenderers.Add(new AutolinkInlineRenderer());
+            ObjectRenderers.Add(new CodeInlineRenderer());
+            ObjectRenderers.Add(new DelimiterInlineRenderer());
+            ObjectRenderers.Add(new EmphasisInlineRenderer());
+            ObjectRenderers.Add(new LineBreakInlineRenderer());
+            ObjectRenderers.Add(new HtmlInlineRenderer());
+            ObjectRenderers.Add(new HtmlEntityInlineRenderer());
+            ObjectRenderers.Add(new LinkInlineRenderer());
+            ObjectRenderers.Add(new LiteralInlineRenderer());
         }
 
         public override object Render(MarkdownObject markdownObject)
@@ -39,30 +69,47 @@ namespace kurema.XamarinMarkdownView.Renderers
             return GetView();
         }
 
-        public void AppendInline(string text, Theme.StyleId styleId)
+        public void AppendInline(string? text, Theme.StyleId styleId)
         {
-            var span = new Span();
-            span.Text = text;
-            span.Style = Theme.GetStyleFromStyleId(styleId).ToStyleSpan();
-            AppendInline(span);
-        }
+            if (text==null) return;
 
-        public void AppendHyperLink(string text, Theme.StyleId styleKey,System.Uri url)
-        {
             var span = new Span();
             span.Text = text;
-            span.Style = Theme.GetStyleFromStyleId(styleKey).ToStyleSpan();
+            var style = StyleSimple.Combine(LayoutStack.Select(a => a.Item2).ToArray());
+
+            if (CurrentHyperlink != null)
             {
                 var taper = new TapGestureRecognizer();
-                taper.Tapped += (a, e) => OpenUri(url);
+                taper.Tapped += (a, e) => UriOpener(CurrentHyperlink);
                 span.GestureRecognizers.Add(taper);
+                span.Style = StyleSimple.Combine(style, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+            }
+            else
+            {
+                span.Style = StyleSimple.Combine(style, Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
             }
             AppendInline(span);
         }
 
+        public void AppendHyperlink(string text, Theme.StyleId styleKey,System.Uri url)
+        {
+            var restoreUrl = CurrentHyperlink;
+            var restoreStyle = HyperlinkStyleId;
+            CurrentHyperlink = url;
+            HyperlinkStyleId = Theme.StyleId.None;
+            AppendInline(text, styleKey);
+            CurrentHyperlink = restoreUrl;
+            HyperlinkStyleId = restoreStyle;
+        }
+
         private static async void OpenUri(Uri Url)
         {
-            await Xamarin.Essentials.Browser.OpenAsync(Url, Xamarin.Essentials.BrowserLaunchMode.SystemPreferred);
+            if (Url == null) return;
+            if (!Url.IsFile)
+            {
+                //ConfigureAwait(true)で良いのかな？
+                await Xamarin.Essentials.Browser.OpenAsync(Url, Xamarin.Essentials.BrowserLaunchMode.SystemPreferred).ConfigureAwait(true);
+            }
         }
 
         public void AppendInline(Span span)
@@ -152,6 +199,22 @@ namespace kurema.XamarinMarkdownView.Renderers
             foreach(var item in leaf.Lines.Lines)
             {
                 AppendLine(item.Slice.ToString(),styleId);
+            }
+        }
+
+        public static Uri? GetAbsoluteUri(Uri? basePath, string path)
+        {
+            if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
+            {
+                return new Uri(path);
+            }
+            else if (Uri.IsWellFormedUriString(path, UriKind.Relative) && basePath != null)
+            {
+                return new Uri(basePath, path);
+            }
+            else
+            {
+                return null;
             }
         }
     }

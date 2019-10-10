@@ -49,7 +49,6 @@ namespace kurema.XamarinMarkdownView.Themes
 
         public enum StyleId
         {
-            Document,
             Code,
             CodeBlock,
             Heading1,
@@ -73,6 +72,8 @@ namespace kurema.XamarinMarkdownView.Themes
             ListBullet,
             ListNumber,
             HtmlBlock,
+            EmphasisBold,
+            EmphasisItalic,
             None
         }
 
