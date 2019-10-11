@@ -45,7 +45,8 @@ namespace kurema.XamarinMarkdownView.Renderers
         protected override void Write(MarkdownRenderer renderer, EmphasisInline obj)
         {
             if (obj?.Span == null) return;
-            renderer?.AppendInline(obj.Span.ToString(), GetStyleIdByDelim(obj));
+            if (renderer == null) return;
+            renderer?.WriteChildrenWithStyle(obj, GetStyleIdByDelim(obj));
         }
 
         public static Theme.StyleId GetStyleIdByDelim(EmphasisInline span)
@@ -121,7 +122,6 @@ namespace kurema.XamarinMarkdownView.Renderers
             }
 
             var title = string.IsNullOrEmpty(obj.Title) ? obj.Url : obj.Title;
-            //renderer?.AppendHyperLink(obj.Title, Theme.StyleId.Hyperlink, new Uri(url));
 
             if (obj.IsImage)
             {
@@ -135,6 +135,7 @@ namespace kurema.XamarinMarkdownView.Renderers
             {
                 var restore = renderer.CurrentHyperlink;
                 renderer.CurrentHyperlink = uri;
+                renderer.HyperlinkStyleId = Theme.StyleId.Hyperlink;
                 renderer.WriteChildren(obj);
                 renderer.CurrentHyperlink = restore;
             }

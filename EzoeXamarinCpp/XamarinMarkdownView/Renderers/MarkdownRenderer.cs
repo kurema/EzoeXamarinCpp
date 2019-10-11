@@ -18,7 +18,7 @@ namespace kurema.XamarinMarkdownView.Renderers
 #nullable enable
     public class MarkdownRenderer : RendererBase
     {
-        private Label CurrentLabel = new Label();
+        private Label? CurrentLabel = new Label();
         private Layout<View> TopLayout = new StackLayout();
         private Stack<Tuple<Layout<View>, StyleSimple>> LayoutStack = new Stack<Tuple<Layout<View>, StyleSimple>>();
         public Layout<View>? TemporaryTargetLayout { get; set; } = null;
@@ -26,7 +26,7 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public Uri? BasePath { get; set; }
 
-        public Theme Theme { get; set; } = Theme.GetDefaultTheme();
+        public Theme Theme { get; set; } = Theme.GetDefaultTheme(ThemeColors.Dark);
 
         public Action<Uri> UriOpener { get; set; } = (uri) => OpenUri(uri);
 
@@ -65,11 +65,18 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public override object Render(MarkdownObject markdownObject)
         {
+            return Render(markdownObject, false);
+
+        }
+
+        public object Render(MarkdownObject markdownObject, bool isScrollView)
+        {
             Clear();
             if (markdownObject is MarkdownDocument)
                 Write(markdownObject);
-            return GetView();
+            return GetView(isScrollView);
         }
+
 
         public void AppendInline(string? text, Theme.StyleId styleId)
         {
@@ -82,13 +89,15 @@ namespace kurema.XamarinMarkdownView.Renderers
             if (CurrentHyperlink != null)
             {
                 var taper = new TapGestureRecognizer();
-                taper.Tapped += (a, e) => UriOpener(CurrentHyperlink);
+                var link = CurrentHyperlink;
+                taper.Tapped += (a, e) => UriOpener(link);
                 span.GestureRecognizers.Add(taper);
-                span.Style = StyleSimple.Combine(style, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                span.Style = StyleSimple.CombineLast(style, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                var styleTest = Theme.GetStyleFromStyleId(HyperlinkStyleId);
             }
             else
             {
-                span.Style = StyleSimple.Combine(style, Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                span.Style = StyleSimple.CombineLast(style, Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
             }
             AppendInline(span);
         }
@@ -104,6 +113,18 @@ namespace kurema.XamarinMarkdownView.Renderers
             HyperlinkStyleId = restoreStyle;
         }
 
+        public void AppendHorizontalLine(Theme.StyleId styleKey)
+        {
+            var style = Theme.GetStyleFromStyleId(styleKey);
+            if (style.BorderSize == 0) return;
+            AppendBlock(new BoxView()
+            {
+                Style = style.ToStyleBox(),
+                WidthRequest = 0,
+                HorizontalOptions = LayoutOptions.FillAndExpand
+            });
+        }
+
         private static async void OpenUri(Uri Url)
         {
             if (Url == null) return;
@@ -117,6 +138,7 @@ namespace kurema.XamarinMarkdownView.Renderers
         public void AppendInline(Span span)
         {
             CurrentLabel = CurrentLabel ?? new Label();
+            CurrentLabel.FormattedText = CurrentLabel.FormattedText ?? new FormattedString();
             CurrentLabel.FormattedText.Spans.Add(span);
         }
 
@@ -127,29 +149,30 @@ namespace kurema.XamarinMarkdownView.Renderers
 
         public void AppendFrame(Theme.StyleId styleKey)
         {
+            CloseLabel();
+            CurrentLabel = null;
             var stack = new StackLayout();
             var theme = Theme.GetStyleFromStyleId(styleKey);
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
             AppendBlock(
                 new Frame()
                 {
                     Style = theme.ToStyleFrame(),
                     Content = stack
                 });
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
         }
 
         public void AppendStack(Theme.StyleId styleKey)
         {
             var stack = new StackLayout();
             var theme = Theme.GetStyleFromStyleId(styleKey);
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
             AppendBlock(stack);
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
         }
 
         public void ApendQuote(Theme.StyleId styleBox, Theme.StyleId styleId)
         {
             StackLayout stack = new StackLayout();
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleId)));
 
             AppendBlock(
                 new StackLayout
@@ -161,6 +184,7 @@ namespace kurema.XamarinMarkdownView.Renderers
                     }
                 }
                 );
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleId)));
         }
 
         public void AddTocEntry(Theme.StyleId styleId, string title,View view)
@@ -173,14 +197,14 @@ namespace kurema.XamarinMarkdownView.Renderers
             TopLayout = new StackLayout();
             LayoutStack.Clear();
             Toc.Clear();
-            CurrentLabel = new Label();
+            CurrentLabel = null;
         }
 
         public void CloseLabel()
         {
             if (CurrentLabel == null) return;
             CurrentLayout.Children.Add(CurrentLabel);
-            CurrentLabel = new Label();
+            CurrentLabel = null;
         }
 
         public void AppendLine(string text, Theme.StyleId styleId)
@@ -195,19 +219,62 @@ namespace kurema.XamarinMarkdownView.Renderers
             LayoutStack.Pop();
         }
 
-        public View GetView()
+        public View GetView(bool isScrollView=false)
         {
             CloseLabel();
 
-            return TopLayout;
+            var style = Theme.GetStyleFromStyleId(Theme.StyleId.Document);
+            TopLayout.Margin = style.Margin ?? TopLayout.Margin;
+
+            if (isScrollView)
+            {
+                return new ScrollView()
+                {
+                    Content = TopLayout,
+                    BackgroundColor = style.BackgroundColor ?? Color.Transparent
+                };
+            }
+            else
+            {
+                TopLayout.BackgroundColor = style.BackgroundColor ?? TopLayout.BackgroundColor;
+                return TopLayout;
+            }
         }
 
-        public void AppendLeafs(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false)
+        public void AppendLeafRawLines(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false)
         {
-            if (leaf == null) return;
+            if (leaf?.Lines.Lines == null) return;
             CloseLabel();
-            var title = leaf.Lines.Lines.Aggregate("", (a, b) => a + "\n" + b);
+            var title = String.Join('\n', leaf.Lines.Lines.Select(a => a.ToString()));
             AppendInline(title, styleId);
+            CurrentLabel = CurrentLabel ?? new Label();
+            if (registerToc) AddTocEntry(styleId, title, CurrentLabel);
+            CloseLabel();
+        }
+
+        public void WriteChildrenWithStyle(ContainerInline container, Theme.StyleId styleId)
+        {
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(new StackLayout(), Theme.GetStyleFromStyleId(styleId)));
+            WriteChildren(container);
+            LayoutStack.Pop();
+        }
+
+        public void AppendLeafInline(LeafBlock leafBlock, Theme.StyleId styleId, bool registerToc = false)
+        {
+            if (leafBlock == null) return;
+            CloseLabel();
+            var inline = (Inline)leafBlock.Inline;
+            var title = "";
+
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(new StackLayout(), Theme.GetStyleFromStyleId(styleId)));
+            while (inline != null)
+            {
+                Write(inline);
+                inline = inline.NextSibling;
+            }
+            LayoutStack.Pop();
+
+            CurrentLabel = CurrentLabel ?? new Label();
             if (registerToc) AddTocEntry(styleId, title, CurrentLabel);
             CloseLabel();
         }
