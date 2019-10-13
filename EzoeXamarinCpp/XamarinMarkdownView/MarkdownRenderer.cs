@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
+using kurema.XamarinMarkdownView.Renderers.SectionProviders;
 using kurema.XamarinMarkdownView.Themes;
-using Markdig.Helpers;
 using Markdig.Renderers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
 using Xamarin.Forms;
+using kurema.XamarinMarkdownView.Renderers;
 
-
-namespace kurema.XamarinMarkdownView.Renderers
+namespace kurema.XamarinMarkdownView
 {
 #nullable enable
     public class MarkdownRenderer : RendererBase
@@ -31,12 +28,16 @@ namespace kurema.XamarinMarkdownView.Renderers
         public Action<Uri> UriOpener { get; set; } = (uri) => OpenUri(uri);
 
         public List<TocEntry> Toc { get; } = new List<TocEntry>();
+        private IHeadingProvider headingProvider = new SectionProviderEmpty();
 
         /// <summary>
         /// Make sure to reset when done.
         /// </summary>
         public Uri? CurrentHyperlink { get; set; }
         public Theme.StyleId HyperlinkStyleId { get; set; } = Theme.StyleId.None;
+        public IHeadingProvider HeadingProvider { get => headingProvider = headingProvider ?? new SectionProviderEmpty(); set => headingProvider = value; }
+
+        public List<int> CurrentSection { get; private set; } = new List<int>();
 
         public MarkdownRenderer()
         {
@@ -46,7 +47,7 @@ namespace kurema.XamarinMarkdownView.Renderers
             ObjectRenderers.Add(new CodeBlockRenderer());
             ObjectRenderers.Add(new ListRenderer());
             ObjectRenderers.Add(new HeadingRenderer());
-            ObjectRenderers.Add(new HtmlBlockRenderer());
+            //ObjectRenderers.Add(new HtmlBlockRenderer());
             ObjectRenderers.Add(new ParagraphRenderer());
             ObjectRenderers.Add(new QuoteBlockRenderer());
             ObjectRenderers.Add(new ThematicBreakRenderer());
@@ -57,7 +58,7 @@ namespace kurema.XamarinMarkdownView.Renderers
             ObjectRenderers.Add(new DelimiterInlineRenderer());
             ObjectRenderers.Add(new EmphasisInlineRenderer());
             ObjectRenderers.Add(new LineBreakInlineRenderer());
-            ObjectRenderers.Add(new HtmlInlineRenderer());
+            //ObjectRenderers.Add(new HtmlInlineRenderer());
             ObjectRenderers.Add(new HtmlEntityInlineRenderer());
             ObjectRenderers.Add(new LinkInlineRenderer());
             ObjectRenderers.Add(new LiteralInlineRenderer());

@@ -91,13 +91,13 @@ namespace kurema.XamarinMarkdownView.Renderers
         }
     }
 
-    public class HtmlBlockRenderer : XamarinFormsObjectRenderer<HtmlBlock>
-    {
-        protected override void Write(MarkdownRenderer renderer, HtmlBlock obj)
-        {
-            renderer?.AppendLeafInline(obj, Themes.Theme.StyleId.HtmlBlock);
-        }
-    }
+    //public class HtmlBlockRenderer : XamarinFormsObjectRenderer<HtmlBlock>
+    //{
+    //    protected override void Write(MarkdownRenderer renderer, HtmlBlock obj)
+    //    {
+    //        renderer?.AppendLeafInline(obj, Themes.Theme.StyleId.HtmlBlock);
+    //    }
+    //}
 
     public class ThematicBreakRenderer : XamarinFormsObjectRenderer<ThematicBreakBlock>
     {

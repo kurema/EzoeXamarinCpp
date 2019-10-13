@@ -19,8 +19,8 @@ namespace kurema.XamarinMarkdownView.Themes
         public static Theme GetDefaultTheme(ThemeColor color)
         {
             string? codeFont = null;
-            double fontSizeHead = 27;
-            double fontSizeBody = 12;
+            double fontSizeHead = 28;
+            double fontSizeBody = 17;
             try
             {
                 switch (Device.RuntimePlatform)
@@ -63,7 +63,7 @@ namespace kurema.XamarinMarkdownView.Themes
                     },
                     {
                         StyleId.CodeBlock,
-                        new StyleSimple(fontSize:fontSizeBody,fontFamily:codeFont,foregroundColor:color.TextColor,backgroundColor:color.CodeBackground,margin:new Thickness(10))
+                        new StyleSimple(fontSize:fontSizeBody,fontFamily:codeFont,foregroundColor:color.TextColor,backgroundColor:color.CodeBackground,margin:new Thickness(10),lineBreakMode:LineBreakMode.CharacterWrap)
                     },
                     {
                         StyleId.Heading1,
@@ -74,7 +74,7 @@ namespace kurema.XamarinMarkdownView.Themes
                     {
                         StyleId.Heading2,
                         new StyleSimple(fontSize:fontSizeBody+fontSizeHeaderMinusBody*5.0/7.0,
-                        foregroundColor:color.TextColor,borderColor:color.SeparatorColor,borderSize:1,
+                        foregroundColor:color.TextColor,borderColor:color.SeparatorColor,borderSize:0.5f,
                         fontAttributes:FontAttributes.Bold)
                     },
                     {
