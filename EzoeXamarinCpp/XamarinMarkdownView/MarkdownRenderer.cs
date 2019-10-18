@@ -78,14 +78,17 @@ namespace kurema.XamarinMarkdownView
             return GetView(isScrollView);
         }
 
-
         public void AppendInline(string? text, Theme.StyleId styleId)
+        {
+            AppendInline(text, Theme.GetStyleFromStyleId(styleId));
+        }
+        public void AppendInline(string? text, StyleSimple style)
         {
             if (text==null) return;
 
             var span = new Span();
             span.Text = text;
-            var style = StyleSimple.Combine(LayoutStack.Select(a => a.Item2).ToArray());
+            var styleBase = StyleSimple.Combine(LayoutStack.Select(a => a.Item2).ToArray());
 
             if (CurrentHyperlink != null)
             {
@@ -93,12 +96,12 @@ namespace kurema.XamarinMarkdownView
                 var link = CurrentHyperlink;
                 taper.Tapped += (a, e) => UriOpener(link);
                 span.GestureRecognizers.Add(taper);
-                span.Style = StyleSimple.CombineLast(style, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                span.Style = StyleSimple.CombineLast(styleBase, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
                 var styleTest = Theme.GetStyleFromStyleId(HyperlinkStyleId);
             }
             else
             {
-                span.Style = StyleSimple.CombineLast(style, Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                span.Style = StyleSimple.CombineLast(styleBase, style).ToStyleSpan();
             }
             AppendInline(span);
         }
@@ -242,7 +245,8 @@ namespace kurema.XamarinMarkdownView
             }
         }
 
-        public void AppendLeafRawLines(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false)
+        public void AppendLeafRawLines(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false
+            )
         {
             if (leaf?.Lines.Lines == null) return;
             CloseLabel();
@@ -260,14 +264,22 @@ namespace kurema.XamarinMarkdownView
             LayoutStack.Pop();
         }
 
-        public void AppendLeafInline(LeafBlock leafBlock, Theme.StyleId styleId, bool registerToc = false)
+        public void AppendLeafInline(LeafBlock leafBlock, Theme.StyleId styleId, bool registerToc = false
+            , string sectionHeader = "", StyleSimple? sectionHeaderStyle = null)
         {
             if (leafBlock == null) return;
             CloseLabel();
-            var inline = (Inline)leafBlock.Inline;
-            var title = "";
 
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(new StackLayout(), Theme.GetStyleFromStyleId(styleId)));
+            var title = "";
+            var style = Theme.GetStyleFromStyleId(styleId);
+            if (!String.IsNullOrEmpty(sectionHeader))
+            {
+                AppendInline(sectionHeader, sectionHeaderStyle ?? style);
+                title += sectionHeader;
+            }
+
+            var inline = (Inline)leafBlock.Inline;
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(new StackLayout(), style));
             while (inline != null)
             {
                 Write(inline);
