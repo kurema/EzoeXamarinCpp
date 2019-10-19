@@ -14,7 +14,7 @@ namespace kurema.XamarinMarkdownView
             if (pipeline == null)
                 pipeline = new MarkdownPipelineBuilder().Build();
 
-            var renderer = new Renderers.MarkdownRenderer();
+            var renderer = new MarkdownRenderer();
             pipeline.Setup(renderer);
 
             var document = Markdig.Markdown.Parse(markdown, pipeline);

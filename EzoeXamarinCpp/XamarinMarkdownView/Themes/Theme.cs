@@ -66,6 +66,14 @@ namespace kurema.XamarinMarkdownView.Themes
                         new StyleSimple(fontSize:fontSizeBody,fontFamily:codeFont,foregroundColor:color.TextColor,backgroundColor:color.CodeBackground,margin:new Thickness(10),lineBreakMode:LineBreakMode.CharacterWrap)
                     },
                     {
+                        StyleId.Math,
+                        new StyleSimple(fontSize:fontSizeBody,foregroundColor:color.TextColor,backgroundColor:color.CodeBackground)
+                    },
+                    {
+                        StyleId.MathBlock,
+                        new StyleSimple(fontSize:fontSizeBody,foregroundColor:color.TextColor,backgroundColor:color.CodeBackground,margin:new Thickness(10),lineBreakMode:LineBreakMode.CharacterWrap)
+                    },
+                    {
                         StyleId.Heading1,
                         new StyleSimple(fontSize:fontSizeHead,
                         foregroundColor:color.TextColor,borderColor:color.SeparatorColor,borderSize:1,
@@ -118,7 +126,11 @@ namespace kurema.XamarinMarkdownView.Themes
                     {
                         StyleId.QuoteBlock,
                         new StyleSimple(fontSize:fontSizeBody,
-                        foregroundColor:color.QuoteTextColor,borderColor:color.QuoteBorderColor,borderSize:1)
+                        foregroundColor:color.QuoteTextColor)
+                    },
+                    {
+                        StyleId.QuoteBlockBar,
+                        new StyleSimple(borderColor:color.QuoteBorderColor,borderSize:1)
                     },
                     {
                         StyleId.StrikeThrough,
@@ -187,6 +199,8 @@ namespace kurema.XamarinMarkdownView.Themes
             Document,
             Code,
             CodeBlock,
+            Math,
+            MathBlock,
             Heading1,
             Heading2,
             Heading3,
@@ -198,6 +212,7 @@ namespace kurema.XamarinMarkdownView.Themes
             Marked,
             Paragraph,
             QuoteBlock,
+            QuoteBlockBar,
             StrikeThrough,
             Subscript,
             Superscript,

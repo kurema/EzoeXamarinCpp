@@ -96,7 +96,7 @@ namespace kurema.XamarinMarkdownView
                 var link = CurrentHyperlink;
                 taper.Tapped += (a, e) => UriOpener(link);
                 span.GestureRecognizers.Add(taper);
-                span.Style = StyleSimple.CombineLast(styleBase, Theme.GetStyleFromStyleId(HyperlinkStyleId), Theme.GetStyleFromStyleId(styleId)).ToStyleSpan();
+                span.Style = StyleSimple.CombineLast(styleBase, Theme.GetStyleFromStyleId(HyperlinkStyleId), style).ToStyleSpan();
                 var styleTest = Theme.GetStyleFromStyleId(HyperlinkStyleId);
             }
             else
@@ -151,30 +151,32 @@ namespace kurema.XamarinMarkdownView
             CurrentLayout.Children.Add(view);
         }
 
-        public void AppendFrame(Theme.StyleId styleKey)
+        public Frame AppendFrame(Theme.StyleId styleKey)
         {
             CloseLabel();
             CurrentLabel = null;
             var stack = new StackLayout();
             var theme = Theme.GetStyleFromStyleId(styleKey);
-            AppendBlock(
-                new Frame()
-                {
-                    Style = theme.ToStyleFrame(),
-                    Content = stack
-                });
+            var frame = new Frame()
+            {
+                Style = theme.ToStyleFrame(),
+                Content = stack
+            };
+            AppendBlock(frame);
             LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            return frame;
         }
 
-        public void AppendStack(Theme.StyleId styleKey)
+        public StackLayout AppendStack(Theme.StyleId styleKey)
         {
             var stack = new StackLayout();
             var theme = Theme.GetStyleFromStyleId(styleKey);
             AppendBlock(stack);
             LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            return stack;
         }
 
-        public void ApendQuote(Theme.StyleId styleBox, Theme.StyleId styleId)
+        public void AppendQuote(Theme.StyleId styleBox, Theme.StyleId styleId)
         {
             StackLayout stack = new StackLayout();
 
@@ -248,9 +250,9 @@ namespace kurema.XamarinMarkdownView
         public void AppendLeafRawLines(LeafBlock leaf, Theme.StyleId styleId, bool registerToc = false
             )
         {
-            if (leaf?.Lines.Lines == null) return;
             CloseLabel();
-            var title = String.Join('\n', leaf.Lines.Lines.Select(a => a.ToString()));
+            var title = Helper.LeafToString(leaf);
+            if (String.IsNullOrWhiteSpace(title)) return;
             AppendInline(title, styleId);
             CurrentLabel = CurrentLabel ?? new Label();
             if (registerToc) AddTocEntry(styleId, title, CurrentLabel);

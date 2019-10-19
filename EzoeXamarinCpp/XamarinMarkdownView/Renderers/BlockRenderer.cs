@@ -85,7 +85,7 @@ namespace kurema.XamarinMarkdownView.Renderers
         protected override void Write(MarkdownRenderer renderer, QuoteBlock obj)
         {
             if (renderer == null) return;
-            renderer.AppendFrame(Themes.Theme.StyleId.QuoteBlock);
+            renderer.AppendQuote(Themes.Theme.StyleId.QuoteBlock,Themes.Theme.StyleId.QuoteBlock);
             renderer.WriteChildren(obj);
             renderer.CloseLayout();
         }
@@ -126,7 +126,6 @@ namespace kurema.XamarinMarkdownView.Renderers
 
             renderer?.AppendLeafInline(obj, StyleIds[level], true);
             renderer?.AppendHorizontalLine(StyleIds[level]);
-
         }
     }
 

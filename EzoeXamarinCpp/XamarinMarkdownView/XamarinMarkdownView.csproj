@@ -5,6 +5,7 @@
     <AssemblyName>XamarinMarkdownView</AssemblyName>
     <RootNamespace>kurema.XamarinMarkdownView</RootNamespace>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <NullableReferenceTypes>true</NullableReferenceTypes>
   </PropertyGroup>
 
   <ItemGroup>
