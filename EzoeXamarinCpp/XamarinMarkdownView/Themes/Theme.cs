@@ -224,6 +224,8 @@ namespace kurema.XamarinMarkdownView.Themes
             HtmlBlock,
             EmphasisBold,
             EmphasisItalic,
+            TableCellBody,
+            TableCellHeader,
             None
         }
 

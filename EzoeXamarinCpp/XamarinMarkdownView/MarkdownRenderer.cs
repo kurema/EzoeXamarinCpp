@@ -163,7 +163,7 @@ namespace kurema.XamarinMarkdownView
                 Content = stack
             };
             AppendBlock(frame);
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            AddLayout(stack, theme);
             return frame;
         }
 
@@ -172,7 +172,7 @@ namespace kurema.XamarinMarkdownView
             var stack = new StackLayout();
             var theme = Theme.GetStyleFromStyleId(styleKey);
             AppendBlock(stack);
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, theme));
+            AddLayout(stack, theme);
             return stack;
         }
 
@@ -190,7 +190,12 @@ namespace kurema.XamarinMarkdownView
                     }
                 }
                 );
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, Theme.GetStyleFromStyleId(styleId)));
+            AddLayout(stack, Theme.GetStyleFromStyleId(styleId));
+        }
+
+        public void AddLayout(Layout<View> stack, StyleSimple style)
+        {
+            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, style));
         }
 
         public void AddTocEntry(Theme.StyleId styleId, string title,View view)
@@ -261,7 +266,7 @@ namespace kurema.XamarinMarkdownView
 
         public void WriteChildrenWithStyle(ContainerInline container, Theme.StyleId styleId)
         {
-            LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(new StackLayout(), Theme.GetStyleFromStyleId(styleId)));
+            AddLayout(new StackLayout(), Theme.GetStyleFromStyleId(styleId));
             WriteChildren(container);
             LayoutStack.Pop();
         }
