@@ -84,7 +84,7 @@ namespace kurema.XamarinMarkdownView
         }
         public void AppendInline(string? text, StyleSimple style)
         {
-            if (text==null) return;
+            if (text == null) return;
 
             var span = new Span();
             span.Text = text;
@@ -106,7 +106,7 @@ namespace kurema.XamarinMarkdownView
             AppendInline(span);
         }
 
-        public void AppendHyperlink(string text, Theme.StyleId styleKey,System.Uri url)
+        public void AppendHyperlink(string text, Theme.StyleId styleKey, System.Uri url)
         {
             var restoreUrl = CurrentHyperlink;
             var restoreStyle = HyperlinkStyleId;
@@ -198,7 +198,7 @@ namespace kurema.XamarinMarkdownView
             LayoutStack.Push(new Tuple<Layout<View>, StyleSimple>(stack, style));
         }
 
-        public void AddTocEntry(Theme.StyleId styleId, string title,View view)
+        public void AddTocEntry(Theme.StyleId styleId, string title, View view)
         {
             Toc.Add(new TocEntry() { StyleId = styleId, Title = title, View = view });
         }
@@ -230,7 +230,7 @@ namespace kurema.XamarinMarkdownView
             LayoutStack.Pop();
         }
 
-        public View GetView(bool isScrollView=false)
+        public View GetView(bool isScrollView = false)
         {
             CloseLabel();
 

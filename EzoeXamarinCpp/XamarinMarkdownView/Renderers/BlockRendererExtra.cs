@@ -23,7 +23,7 @@ namespace kurema.XamarinMarkdownView.Renderers
         }
     }
 
-    
+
     public class MathBlockRendererMathJax : XamarinFormsObjectRenderer<MathBlock>
     {
         public string MathJaxPath { get; set; }
@@ -59,17 +59,17 @@ namespace kurema.XamarinMarkdownView.Renderers
             if (hasColumnWidth)
             {
                 result.ColumnDefinitions = new ColumnDefinitionCollection();
-                foreach(var item in obj.ColumnDefinitions)
+                foreach (var item in obj.ColumnDefinitions)
                 {
                     result.ColumnDefinitions.Add(new ColumnDefinition() { Width = item.Width });
                 }
             }
 
             int rowCount = 0;
-            foreach(var item in obj)
+            foreach (var item in obj)
             {
                 var row = (TableRow)item;
-                for(int columnCount = 0; columnCount < row.Count; columnCount++)
+                for (int columnCount = 0; columnCount < row.Count; columnCount++)
                 {
                     var cell = row[columnCount] as TableCell;
 

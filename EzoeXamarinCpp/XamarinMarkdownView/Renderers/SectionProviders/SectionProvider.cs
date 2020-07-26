@@ -83,7 +83,7 @@ namespace kurema.XamarinMarkdownView.Renderers.SectionProviders
             string head = heading.HeaderText;
             for (int i = 0; i < 6; i++)
             {
-                head.Replace(PlaceHolders[i], count.Length < i - 1 ? "1" : (count[i] + 1).ToString());
+                head = head.Replace(PlaceHolders[i], count.Length < i - 1 ? "1" : (count[i] + 1).ToString(),StringComparison.Ordinal);
             }
             return new SectionResult(head, heading.CustomStyle);
         }
